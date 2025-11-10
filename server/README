@@ -1,0 +1,3 @@
+1. run the command: npm install
+2. fill out .env to connect to database
+3. run the command inside the server directory: node server
