@@ -18,10 +18,10 @@ router.get("/", roleMiddleware("customer"), async (req, res) => {
   try {
     const [results] = await db
       .promise()
-      .query("SELECT * FROM ACCOUNTS WHERE customer_id = ?;", [customer_id]);
+      .query("SELECT * FROM ACCOUNTS WHERE customer_id = ?", [customer_id]);
     res.status(200).json(results);
   } catch (err) {
-    console.error("Error fetching courses:", err);
+    console.error("Error loggin in:", err);
     return res.status(500).json({ error: "Database error." });
   }
 });
