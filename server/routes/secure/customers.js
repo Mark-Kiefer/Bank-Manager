@@ -262,10 +262,7 @@ router.delete("/", roleMiddleware("employee"), async (req, res) => {
   let { customer_id } = req.body;
 
   // Input Sanitization
-  customer_id = sanitizeHtml((customer_id || "").trim(), {
-    allowedTags: [],
-    allowedAttributes: {},
-  });
+  customer_id = Number(customer_id);
 
   if (!customer_id) {
     return res.status(400).json({ error: "customer_id is required." });
@@ -280,6 +277,14 @@ router.delete("/", roleMiddleware("employee"), async (req, res) => {
       .status(200)
       .json({ success: true, affectedRows: results.affectedRows });
   } catch (err) {
+    // Foreign key constraint — cannot delete customer
+    if (err.code === "ER_ROW_IS_REFERENCED_2") {
+      return res.status(409).json({
+        error:
+          "Cannot delete customer because they still have linked accounts. Delete accounts first.",
+      });
+    }
+
     console.error("Error deleting customer(s):", err);
     return res.status(500).json({ error: "Database error." });
   }

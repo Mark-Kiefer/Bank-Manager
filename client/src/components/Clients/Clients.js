@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 
+import Add_Client from "./Add_Client";
+
 function Clients({ branchId }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [clients, setClients] = useState([]);
@@ -58,6 +60,48 @@ function Clients({ branchId }) {
     e.preventDefault();
     if (searchTerm.trim()) {
       fetchClients(searchTerm);
+    }
+  };
+
+  const deleteClient = async (customer_id) => {
+    if (!window.confirm("Are you sure you want to delete this client?")) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        toast.error("No authentication token found");
+        return;
+      }
+
+      const response = await fetch(`/api/secure/customers`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        method: "DELETE",
+        body: JSON.stringify({ customer_id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(`Failed to delete client. ${data.error}`);
+        return;
+      }
+
+      toast.success("Client deleted successfully");
+
+      // Refresh client list
+      fetchClients(searchTerm);
+    } catch (err) {
+      toast.error(`An error occurred. ${err.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,7 +164,13 @@ function Clients({ branchId }) {
                       </p>
                     )}
                     <div className="client-actions">
-                      <button className="button-danger-inline">Delete</button>
+                      <button className="button">View Accounts</button>
+                      <button
+                        className="button-danger-inline"
+                        onClick={() => deleteClient(client.customer_id)}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -135,6 +185,7 @@ function Clients({ branchId }) {
             </div>
           )}
         </div>
+        <Add_Client branchId={currentBranchId} />
       </div>
     </>
   );

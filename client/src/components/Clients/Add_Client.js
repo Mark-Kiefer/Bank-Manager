@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-function Add_Employee({ branchId, onEmployeeAdded }) {
+function Add_Client({ branchId }) {
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
     email: "",
     phone_number: "",
-    password: "",
-    position: "",
+    address: "",
+    date_of_birth: "",
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -38,7 +38,7 @@ function Add_Employee({ branchId, onEmployeeAdded }) {
         return;
       }
 
-      const response = await fetch(`/api/secure/employees`, {
+      const response = await fetch(`/api/secure/customers`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -47,31 +47,25 @@ function Add_Employee({ branchId, onEmployeeAdded }) {
         body: JSON.stringify({
           ...form,
           branch_id: branchId,
-          hire_date: new Date().toISOString().split("T")[0],
         }),
       });
 
       if (!response.ok) {
-        toast.error(`Failed to add employee. ${response.status}`);
+        toast.error(`Failed to add client. ${response.error}`);
         return;
       }
 
       const data = await response.json();
-      toast.success("Employee added successfully");
-
-      // Let parent refresh employee list
-      if (onEmployeeAdded) {
-        onEmployeeAdded(data.employee || null);
-      }
+      toast.success("Client added successfully");
 
       // Clear form
       setForm({
         first_name: "",
         last_name: "",
         email: "",
-        position: "",
         phone_number: "",
-        password: "",
+        address: "",
+        date_of_birth: "",
       });
     } catch (err) {
       toast.error(`An error occurred. ${err.message}`);
@@ -82,7 +76,7 @@ function Add_Employee({ branchId, onEmployeeAdded }) {
 
   return (
     <div className="card">
-      <h2>Add New Employee</h2>
+      <h2>Add New Client</h2>
       <form className="form" onSubmit={handleSubmit}>
         <label>
           First Name
@@ -115,20 +109,21 @@ function Add_Employee({ branchId, onEmployeeAdded }) {
         </label>
 
         <label>
-          Password
+          Address
           <input
-            name="password"
-            value={form.password}
+            name="address"
+            value={form.address}
             onChange={handleChange}
             required
           />
         </label>
 
         <label>
-          Position
+          Date of Birth
           <input
-            name="position"
-            value={form.position}
+            type="date"
+            name="date_of_birth"
+            value={form.date_of_birth}
             onChange={handleChange}
           />
         </label>
@@ -143,11 +138,11 @@ function Add_Employee({ branchId, onEmployeeAdded }) {
         </label>
 
         <button className="button" type="submit" disabled={submitting}>
-          {submitting ? "Adding..." : "Add Employee"}
+          {submitting ? "Adding..." : "Add Client"}
         </button>
       </form>
     </div>
   );
 }
 
-export default Add_Employee;
+export default Add_Client;
