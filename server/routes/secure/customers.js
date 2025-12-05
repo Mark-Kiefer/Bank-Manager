@@ -3,10 +3,12 @@ const router = express.Router();
 const db = require("../connect.js");
 const sanitizeHtml = require("sanitize-html");
 
+const { roleMiddleware } = require("../../middleware/auth.js");
+
 // GET customers
 // No values -> all customers
 // customer_id -> that customer
-router.get("/", async (req, res) => {
+router.get("/", roleMiddleware("employee"), async (req, res) => {
   let { customer_id } = req.query;
 
   // Input Sanitization
@@ -37,7 +39,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST customer
-router.post("/", async (req, res) => {
+router.post("/", roleMiddleware("employee"), async (req, res) => {
   let {
     first_name,
     last_name,
@@ -116,7 +118,7 @@ router.post("/", async (req, res) => {
 });
 
 // PUT customer
-router.put("/", async (req, res) => {
+router.put("/", roleMiddleware("employee"), async (req, res) => {
   let {
     customer_id,
     first_name,
@@ -243,7 +245,7 @@ router.put("/", async (req, res) => {
 });
 
 // DELETE customer
-router.delete("/", async (req, res) => {
+router.delete("/", roleMiddleware("employee"), async (req, res) => {
   let { customer_id } = req.body;
 
   // Input Sanitization

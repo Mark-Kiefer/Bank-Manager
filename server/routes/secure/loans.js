@@ -3,11 +3,13 @@ const router = express.Router();
 const db = require("../connect.js");
 const sanitizeHtml = require("sanitize-html");
 
+const { roleMiddleware } = require("../../middleware/auth.js");
+
 // Get loans from db
 // No values -> all loans
 // loan id -> that loan
 // customer id -> all loans for that customer
-router.get("/", async (req, res) => {
+router.get("/", roleMiddleware("employee"), async (req, res) => {
   // Requires one or none of these
   let { customer_id, loan_id } = req.query;
 
@@ -56,7 +58,7 @@ router.get("/", async (req, res) => {
 });
 
 // Add a loan to the db
-router.post("/", async (req, res) => {
+router.post("/", roleMiddleware("employee"), async (req, res) => {
   // Required inputs
   let {
     customer_id,
@@ -125,7 +127,7 @@ router.post("/", async (req, res) => {
 // Update a loan in the db
 // loan id -> that loan
 // customer id -> all loans for that customer
-router.put("/", async (req, res) => {
+router.put("/", roleMiddleware("employee"), async (req, res) => {
   // Required inputs
   let {
     loan_id,
@@ -240,7 +242,7 @@ router.put("/", async (req, res) => {
 // Delete a loan in the db
 // loan id -> that loan
 // customer id -> all loans for that customer
-router.delete("/", async (req, res) => {
+router.delete("/", roleMiddleware("employee"), async (req, res) => {
   // Requires one of these
   let { loan_id, customer_id } = req.body;
 

@@ -9,7 +9,7 @@ const PORT = process.env.PORT;
 app.use(express.json());
 // app.use(express.static(path.join(__dirname, "../client")));
 
-// const { authMiddleware } = require("./middleware/auth");
+const { authMiddleware } = require("./middleware/auth");
 
 /*
  * Public routes
@@ -25,23 +25,23 @@ app.use("/api/login", loginRoutes);
 
 // Import account routes
 const accountRoutes = require("./routes/secure/accounts");
-app.use("/api/secure/accounts", accountRoutes);
+app.use("/api/secure/accounts", authMiddleware, accountRoutes);
 
 // Import loan routes
 const loanRoutes = require("./routes/secure/loans");
-app.use("/api/secure/loans", loanRoutes);
+app.use("/api/secure/loans", authMiddleware, loanRoutes);
 
 // Import branch routes
 const branchRoutes = require("./routes/secure/branches");
-app.use("/api/secure/branches", branchRoutes);
+app.use("/api/secure/branches", authMiddleware, branchRoutes);
 
 // Import employee routes
 const employeeRoutes = require("./routes/secure/employees");
-app.use("/api/secure/employees", employeeRoutes);
+app.use("/api/secure/employees", authMiddleware, employeeRoutes);
 
 // Import customer routes
 const customerRoutes = require("./routes/secure/customers");
-app.use("/api/secure/customers", customerRoutes);
+app.use("/api/secure/customers", authMiddleware, customerRoutes);
 
 // Start server
 app.listen(PORT, () => {

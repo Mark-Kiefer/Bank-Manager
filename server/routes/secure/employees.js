@@ -2,15 +2,23 @@ const express = require("express");
 const router = express.Router();
 const db = require("../connect.js");
 const sanitizeHtml = require("sanitize-html");
+const bcrypt = require("bcrypt");
+
+const { roleMiddleware } = require("../../middleware/auth.js");
 
 // Get employees from db
 // No values -> all employees
 // employee id -> that employee
-router.get("/", async (req, res) => {
-  let { employee_id } = req.query;
+// branch id -> all employees in that branch
+router.get("/", roleMiddleware("employee"), async (req, res) => {
+  let { employee_id, branch_id } = req.query;
 
   // Input sanitization
   employee_id = sanitizeHtml((employee_id || "").trim(), {
+    allowedTags: [],
+    allowedAttributes: {},
+  });
+  branch_id = sanitizeHtml((branch_id || "").trim(), {
     allowedTags: [],
     allowedAttributes: {},
   });
@@ -20,6 +28,9 @@ router.get("/", async (req, res) => {
   if (employee_id) {
     sql = "SELECT * FROM employee WHERE employee_id = ?";
     params = [employee_id];
+  } else if (branch_id) {
+    sql = "SELECT * FROM employee WHERE branch_id = ?";
+    params = [branch_id];
   } else {
     sql = "SELECT * FROM employee";
     params = [];
@@ -40,7 +51,7 @@ router.get("/", async (req, res) => {
 });
 
 // Add an employee to the db
-router.post("/", async (req, res) => {
+router.post("/", roleMiddleware("employee"), async (req, res) => {
   // Required inputs
   let {
     first_name,
@@ -50,6 +61,7 @@ router.post("/", async (req, res) => {
     position,
     hire_date,
     branch_id,
+    password,
   } = req.body;
 
   // Input sanitization
@@ -81,24 +93,33 @@ router.post("/", async (req, res) => {
     allowedTags: [],
     allowedAttributes: {},
   });
+  password = sanitizeHtml((password || "").trim(), {
+    allowedTags: [],
+    allowedAttributes: {},
+  });
 
   if (
     !first_name ||
     !last_name ||
     !email ||
+    !email.includes("@") ||
     !phone_number ||
     !position ||
     !hire_date ||
-    !branch_id
+    !branch_id ||
+    !password
   ) {
-    return res.status(400).json({ error: "All fields are required." });
+    return res
+      .status(400)
+      .json({ error: "All fields must be correctly filled." });
   }
 
   try {
+    const hashedPassword = await bcrypt.hash(password, 10);
     const [results] = await db
       .promise()
       .query(
-        "INSERT INTO employee (first_name, last_name, email, phone_number, position, hire_date, branch_id) VALUES ( ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO employee (first_name, last_name, email, phone_number, position, hire_date, branch_id, password) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)",
         [
           first_name,
           last_name,
@@ -107,6 +128,7 @@ router.post("/", async (req, res) => {
           position,
           hire_date,
           branch_id,
+          hashedPassword,
         ]
       );
     return res
@@ -120,7 +142,7 @@ router.post("/", async (req, res) => {
 
 // Update an employee in the db
 // employee id -> that employee
-router.put("/", async (req, res) => {
+router.put("/", roleMiddleware("employee"), async (req, res) => {
   // Required inputs
   let {
     employee_id,
@@ -253,7 +275,7 @@ router.put("/", async (req, res) => {
 
 // Delete an employee in the db
 // employee id -> that employee
-router.delete("/", async (req, res) => {
+router.delete("/", roleMiddleware("employee"), async (req, res) => {
   let { employee_id } = req.body;
 
   // Input sanitization

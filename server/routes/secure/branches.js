@@ -3,10 +3,12 @@ const router = express.Router();
 const db = require("../connect.js");
 const sanitizeHtml = require("sanitize-html");
 
+const { roleMiddleware } = require("../../middleware/auth.js");
+
 // Get branches from db
 // No values -> all branches
 // branch id -> that branch
-router.get("/", async (req, res) => {
+router.get("/", roleMiddleware("employee"), async (req, res) => {
   let { branch_id } = req.query;
 
   // Input sanitization
@@ -40,7 +42,7 @@ router.get("/", async (req, res) => {
 });
 
 // Add a branch to the db
-router.post("/", async (req, res) => {
+router.post("/", roleMiddleware("employee"), async (req, res) => {
   // Required inputs
   let { branch_name, address, city, manager_id } = req.body;
 
@@ -82,7 +84,7 @@ router.post("/", async (req, res) => {
 
 // Update a branch in the db
 // branch id -> that branch
-router.put("/", async (req, res) => {
+router.put("/", roleMiddleware("employee"), async (req, res) => {
   // Required inputs
   let { branch_id, branch_name, address, city, manager_id } = req.body;
 
@@ -173,7 +175,7 @@ router.put("/", async (req, res) => {
 
 // Delete a branch in the db
 // branch id -> that branch
-router.delete("/", async (req, res) => {
+router.delete("/", roleMiddleware("employee"), async (req, res) => {
   let { branch_id } = req.body;
 
   // Input sanitization

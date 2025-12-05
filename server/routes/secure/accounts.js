@@ -6,7 +6,7 @@ const sanitizeHtml = require("sanitize-html");
 const { roleMiddleware } = require("../../middleware/auth.js");
 
 // Get accounts from db given customer_id
-router.get("/", async (req, res) => {
+router.get("/", roleMiddleware("employee"), async (req, res) => {
   let { customer_id } = req.query;
 
   // Input sanitization
@@ -33,7 +33,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST account
-router.post("/", async (req, res) => {
+router.post("/", roleMiddleware("employee"), async (req, res) => {
   let { customer_id, branch_id, account_type, balance, date_opened } = req.body;
 
   // Input sanitization
@@ -93,7 +93,7 @@ router.post("/", async (req, res) => {
 // PUT account
 // account id -> update that account
 // customer id -> update all accounts for that customer
-router.put("/", async (req, res) => {
+router.put("/", roleMiddleware("employee"), async (req, res) => {
   let {
     account_id,
     customer_id,
@@ -202,7 +202,7 @@ router.put("/", async (req, res) => {
 // DELETE account
 // account id -> delete that account
 // customer id -> delete all accounts for that customer
-router.delete("/", async (req, res) => {
+router.delete("/", roleMiddleware("employee"), async (req, res) => {
   let { account_id, customer_id } = req.body;
 
   // Input sanitization

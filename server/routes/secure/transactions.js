@@ -10,7 +10,7 @@ const { roleMiddleware } = require("../../middleware/auth.js");
 // transaction_id -> that transaction
 // account_id -> transactions for that account
 // customer_id -> transactions for that customer
-router.get("/", async (req, res) => {
+router.get("/", roleMiddleware("employee"), async (req, res) => {
   // Requires one or none of these
   let { customer_id, account_id, transaction_id } = req.query;
 
@@ -71,7 +71,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST transaction
-router.post("/", async (req, res) => {
+router.post("/", roleMiddleware("employee"), async (req, res) => {
   let {
     account_id,
     customer_id,
@@ -147,7 +147,7 @@ router.post("/", async (req, res) => {
 // transaction_id -> that transaction
 // account_id -> transactions for that account
 // customer_id -> transactions for that customer
-router.put("/", async (req, res) => {
+router.put("/", roleMiddleware("employee"), async (req, res) => {
   let {
     transaction_id,
     account_id,
@@ -272,7 +272,7 @@ router.put("/", async (req, res) => {
 // transaction_id -> that transaction
 // account_id -> transactions for that account
 // customer_id -> transactions for that customer
-router.delete("/", async (req, res) => {
+router.delete("/", roleMiddleware("employee"), async (req, res) => {
   let { transaction_id, account_id, customer_id } = req.body;
 
   // Input sanitization

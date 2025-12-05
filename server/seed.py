@@ -18,5 +18,5 @@ with open('mock_customers.csv', 'w', newline='') as file:
             fake.phone_number(),
             fake.address().replace('\n', ', '),
             fake.date_of_birth(minimum_age=18, maximum_age=80).strftime('%Y-%m-%d'),
-            1  # example branch_id, you can randomize or customize as needed
+            1  # branch_id
         ])
