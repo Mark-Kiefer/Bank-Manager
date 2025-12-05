@@ -8,11 +8,20 @@ const { roleMiddleware } = require("../../middleware/auth.js");
 // GET customers
 // No values -> all customers
 // customer_id -> that customer
+// search term and branch id -> up to 10 matching customers for that branch
 router.get("/", roleMiddleware("employee"), async (req, res) => {
-  let { customer_id } = req.query;
+  let { customer_id, searchTerm, branch_id } = req.query;
 
   // Input Sanitization
   customer_id = sanitizeHtml((customer_id || "").trim(), {
+    allowedTags: [],
+    allowedAttributes: {},
+  });
+  searchTerm = sanitizeHtml((searchTerm || "").trim(), {
+    allowedTags: [],
+    allowedAttributes: {},
+  });
+  branch_id = sanitizeHtml((branch_id || "").trim(), {
     allowedTags: [],
     allowedAttributes: {},
   });
@@ -21,6 +30,12 @@ router.get("/", roleMiddleware("employee"), async (req, res) => {
   if (customer_id) {
     sql = "SELECT * FROM customer WHERE customer_id = ?";
     params = [customer_id];
+  } else if (searchTerm && branch_id) {
+    searchTerm = searchTerm.toLowerCase();
+    sql =
+      "SELECT * FROM customer WHERE (CONCAT(LOWER(first_name), ' ', LOWER(last_name)) LIKE ? OR LOWER(first_name) LIKE ? OR LOWER(last_name) LIKE ? OR phone_number LIKE ? OR LOWER(email) LIKE ?) AND branch_id = ?";
+    const likeTerm = `%${searchTerm}%`;
+    params = [likeTerm, likeTerm, likeTerm, likeTerm, likeTerm, branch_id];
   } else {
     sql = "SELECT * FROM customer";
     params = [];
@@ -28,9 +43,7 @@ router.get("/", roleMiddleware("employee"), async (req, res) => {
 
   try {
     const [results] = await db.promise().query(sql, params);
-    if (results.length === 0) {
-      return res.status(404).json({ error: "No records found." });
-    }
+
     return res.status(200).json({ customers: results });
   } catch (err) {
     console.error("Error getting customers:", err);

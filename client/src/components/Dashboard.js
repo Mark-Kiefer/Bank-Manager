@@ -68,7 +68,9 @@ function Dashboard() {
               <button
                 className="button"
                 onClick={() =>
-                  navigate(`/dashboard/branches/${branch.branch_id}/clients`)
+                  navigate(`/dashboard/branches/${branch.branch_id}/clients`, {
+                    state: { branchName: branch.branch_name },
+                  })
                 }
               >
                 Search for Client
