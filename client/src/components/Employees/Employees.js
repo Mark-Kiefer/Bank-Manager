@@ -3,10 +3,12 @@ import { toast } from "react-toastify";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 import Add_Employee from "./Add_Employee";
+import Edit_Employee from "./Edit_Employee";
 
 function Employees({ branchId }) {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editingEmployee, setEditingEmployee] = useState(null);
   const { branch_id } = useParams();
 
   const navigate = useNavigate();
@@ -36,6 +38,12 @@ function Employees({ branchId }) {
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          toast.error("Session expired. Please login again.");
+          localStorage.removeItem("token");
+          navigate("/");
+          return;
+        }
         toast.error(
           `Failed to fetch employees. HTTP error! status: ${response.status}`
         );
@@ -125,6 +133,12 @@ function Employees({ branchId }) {
                 </p>
                 <div className="employee-actions">
                   <button
+                    className="button"
+                    onClick={() => setEditingEmployee(employee)}
+                  >
+                    Edit
+                  </button>
+                  <button
                     className="button-danger-inline"
                     onClick={() => deleteEmployee(employee.employee_id)}
                   >
@@ -135,10 +149,21 @@ function Employees({ branchId }) {
             ))
           )}
         </div>
-        <Add_Employee
-          branchId={currentBranchId}
-          onEmployeeAdded={() => fetchEmployees()}
-        />
+        {editingEmployee ? (
+          <Edit_Employee
+            employee={editingEmployee}
+            onEmployeeUpdated={() => {
+              fetchEmployees();
+              setEditingEmployee(null);
+            }}
+            onCancel={() => setEditingEmployee(null)}
+          />
+        ) : (
+          <Add_Employee
+            branchId={currentBranchId}
+            onEmployeeAdded={() => fetchEmployees()}
+          />
+        )}
       </div>
     </>
   );

@@ -24,6 +24,12 @@ function Dashboard() {
         });
 
         if (!response.ok) {
+          if (response.status === 401) {
+            toast.error("Session expired. Please login again.");
+            localStorage.removeItem("token");
+            navigate("/");
+            return;
+          }
           toast.error(
             `Failed to fetch branches. HTTP error! status: ${response.status}`
           );

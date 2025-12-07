@@ -1,5 +1,5 @@
 // src/Login.js
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -7,6 +7,14 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,14 +37,28 @@ function Login() {
         body: JSON.stringify({ email, password }),
       });
 
+      // Check if response is ok and is JSON
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        // Backend is not running or returned HTML error page
+        toast.error("Cannot connect to server. Please ensure the backend server is running on http://localhost:5000");
+        console.error("Response is not JSON. Status:", res.status);
+        return;
+      }
+
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(`Login failed. ${data.error || ""}`);
+        toast.error(`Login failed: ${data.error || "Invalid email or password"}`);
         return;
       }
 
       const token = data.token;
+      if (!token) {
+        toast.error("Login failed: No authentication token received");
+        return;
+      }
+
       toast.success("Login successful!");
 
       // Save token
@@ -45,7 +67,14 @@ function Login() {
       // Navigate to dashboard
       navigate("/dashboard");
     } catch (err) {
-      toast.error(`An error occurred. ${err.message}`);
+      console.error("Login error:", err);
+      if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
+        toast.error("Cannot connect to server. Please check:\n1. Is the backend server running? (http://localhost:5000)\n2. Is your network connection working?");
+      } else if (err.message.includes("JSON")) {
+        toast.error("Server response format error. Please ensure the backend server is running");
+      } else {
+        toast.error(`An error occurred: ${err.message}`);
+      }
     }
   };
 

@@ -21,11 +21,8 @@ router.get("/", roleMiddleware("employee"), async (req, res) => {
       .promise()
       .query("SELECT * FROM account WHERE customer_id = ?", [customer_id]);
 
-    if (results.length === 0) {
-      return res.status(404).json({ error: "No records found." });
-    }
-
-    res.status(200).json({ accounts: results });
+    // Return empty array instead of 404 when no accounts found
+    res.status(200).json({ accounts: results || [] });
   } catch (err) {
     console.error("Error getting accounts:", err);
     return res.status(500).json({ error: "Database error." });

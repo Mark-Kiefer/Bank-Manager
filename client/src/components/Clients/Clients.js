@@ -4,12 +4,14 @@ import { toast } from "react-toastify";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 import Add_Client from "./Add_Client";
+import Edit_Client from "./Edit_Client";
 
 function Clients({ branchId }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [allResults, setAllResults] = useState([]);
+  const [editingClient, setEditingClient] = useState(null);
 
   const { branch_id } = useParams();
 
@@ -43,6 +45,12 @@ function Clients({ branchId }) {
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          toast.error("Session expired. Please login again.");
+          localStorage.removeItem("token");
+          navigate("/");
+          return;
+        }
         toast.error(`Failed to fetch clients. Status: ${response.status}`);
         return;
       }
@@ -58,9 +66,12 @@ function Clients({ branchId }) {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      fetchClients(searchTerm);
-    }
+    fetchClients(searchTerm.trim());
+  };
+
+  const handleViewAll = () => {
+    setSearchTerm("");
+    fetchClients("");
   };
 
   const deleteClient = async (customer_id) => {
@@ -124,12 +135,23 @@ function Clients({ branchId }) {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search clients"
+              placeholder="Search by name, phone, email, or account number"
             />
             <button type="submit" className="button" disabled={loading}>
               {loading ? "Searching..." : "Search"}
             </button>
+            <button
+              type="button"
+              className="button"
+              onClick={handleViewAll}
+              disabled={loading}
+            >
+              View All
+            </button>
           </div>
+          <p className="search-hint">
+            💡 Tip: You can search by customer name, phone, email, or account number. Leave empty and click "View All" to see all clients for this branch.
+          </p>
         </form>
 
         <div className="clients-section">
@@ -164,7 +186,42 @@ function Clients({ branchId }) {
                       </p>
                     )}
                     <div className="client-actions">
-                      <button className="button">View Accounts</button>
+                      <button
+                        className="button"
+                        onClick={() =>
+                          navigate(
+                            `/dashboard/customers/${client.customer_id}/accounts`,
+                            {
+                              state: {
+                                customerName: `${client.first_name} ${client.last_name}`,
+                              },
+                            }
+                          )
+                        }
+                      >
+                        View Accounts
+                      </button>
+                      <button
+                        className="button"
+                        onClick={() =>
+                          navigate(
+                            `/dashboard/customers/${client.customer_id}/loans`,
+                            {
+                              state: {
+                                customerName: `${client.first_name} ${client.last_name}`,
+                              },
+                            }
+                          )
+                        }
+                      >
+                        View Loans
+                      </button>
+                      <button
+                        className="button"
+                        onClick={() => setEditingClient(client)}
+                      >
+                        Edit
+                      </button>
                       <button
                         className="button-danger-inline"
                         onClick={() => deleteClient(client.customer_id)}
@@ -185,7 +242,18 @@ function Clients({ branchId }) {
             </div>
           )}
         </div>
-        <Add_Client branchId={currentBranchId} />
+        {editingClient ? (
+          <Edit_Client
+            client={editingClient}
+            onClientUpdated={() => {
+              fetchClients(searchTerm);
+              setEditingClient(null);
+            }}
+            onCancel={() => setEditingClient(null)}
+          />
+        ) : (
+          <Add_Client branchId={currentBranchId} />
+        )}
       </div>
     </>
   );
