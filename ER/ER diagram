@@ -1,0 +1,40 @@
+erDiagram
+    CUSTOMER ||--o{ ACCOUNT : owns
+    CUSTOMER ||--o{ CONTACT : receives
+    CAMPAIGN ||--o{ CONTACT : includes
+
+    CUSTOMER {
+        int customer_id
+        tinyint age
+        varchar job
+        varchar marital
+        varchar education
+        enum has_default
+        enum housing_loan
+        enum personal_loan
+    }
+
+    ACCOUNT {
+        int account_id
+        int customer_id
+        decimal balance
+    }
+
+    CAMPAIGN {
+        int campaign_id
+        int pdays
+        int previous
+        varchar poutcome
+    }
+
+    CONTACT {
+        int contact_id
+        int customer_id
+        int campaign_id
+        varchar contact_type
+        tinyint contact_day
+        varchar contact_month
+        int duration
+        int campaign_contacts
+        enum deposit
+    }

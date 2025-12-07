@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 const SECRET = process.env.JWT_SECRET;
 
 router.post("/", async (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
 
   email = sanitizeHtml((email || "").trim(), {
     allowedTags: [],
@@ -23,7 +23,7 @@ router.post("/", async (req, res) => {
   // Match email
   const [rows] = await db
     .promise()
-    .query("SELECT email, password FROM CUSTOMERS WHERE email = ?", [email]);
+    .query("SELECT email, password FROM employee WHERE email = ?", [email]);
 
   if (rows.length === 0)
     return res.status(401).json({ error: "Invalid credentials" });
@@ -35,15 +35,11 @@ router.post("/", async (req, res) => {
   if (!match) return res.status(401).json({ error: "Invalid credentials" });
 
   // Issue token and their role
-  const token = jwt.sign(
-    { customer_id: user.customer_id, role: "customer" },
-    SECRET,
-    {
-      expiresIn: "2h",
-    }
-  );
+  const token = jwt.sign({ email: user.email, role: "employee" }, SECRET, {
+    expiresIn: "2h",
+  });
 
-  res.json({ token, role: user.role });
+  res.json({ token, role: "employee" });
 });
 
 module.exports = router;
