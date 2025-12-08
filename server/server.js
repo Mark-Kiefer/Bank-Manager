@@ -7,7 +7,6 @@ const PORT = process.env.PORT;
 
 // Middleware
 app.use(express.json());
-// app.use(express.static(path.join(__dirname, "../client")));
 
 const { authMiddleware } = require("./middleware/auth");
 
@@ -42,6 +41,13 @@ app.use("/api/secure/employees", authMiddleware, employeeRoutes);
 // Import customer routes
 const customerRoutes = require("./routes/secure/customers");
 app.use("/api/secure/customers", authMiddleware, customerRoutes);
+
+// Server react app
+app.use(express.static(path.join(__dirname, "../client/build")));
+
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/build/index.html"));
+});
 
 // Start server
 app.listen(PORT, () => {
