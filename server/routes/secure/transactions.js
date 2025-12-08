@@ -59,11 +59,8 @@ router.get("/", roleMiddleware("employee"), async (req, res) => {
   try {
     const [results] = await db.promise().query(sql, params);
 
-    if (results.length === 0) {
-      return res.status(404).json({ error: "No records found." });
-    }
-
-    return res.status(200).json({ transactions: results });
+    // Return empty array instead of 404 when no transactions found
+    return res.status(200).json({ transactions: results || [] });
   } catch (err) {
     console.error("Error getting transactions:", err);
     return res.status(500).json({ error: "Database error." });
