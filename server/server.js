@@ -42,6 +42,10 @@ app.use("/api/secure/employees", authMiddleware, employeeRoutes);
 const customerRoutes = require("./routes/secure/customers");
 app.use("/api/secure/customers", authMiddleware, customerRoutes);
 
+// Import transaction routes
+const transactionRoutes = require("./routes/secure/transactions");
+app.use("/api/secure/transactions", authMiddleware, transactionRoutes);
+
 // Server react app
 app.use(express.static(path.join(__dirname, "../client/build")));
 
